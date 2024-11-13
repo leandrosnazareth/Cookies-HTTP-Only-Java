@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página Protegida</title>
+</head>
+
+<body>
+    <h1>Bem-vindo à página protegida!</h1>
+    <p>Esta página só pode ser acessada por usuários autenticados.</p>
+    <button onclick="logout()">Sair</button>
+
+    <script>
+        // Função para verificar o token JWT no cookie
+        function checkAuthToken() {
+            const token = getCookie('authToken');
+            if (!token) {
+                // Se o token não estiver presente, redireciona para a página de login
+                window.location.href = '/login';
+            } else {
+                // Caso tenha token, verifica se é válido
+                fetch('/auth/verify', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        // Se o token não for válido, redireciona para o login
+                        window.location.href = '/login';
+                    }
+                });
+            }
+        }
+
+        // Função para pegar o valor de um cookie pelo nome
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+        }
+
+        // Função para fazer logout
+        function logout() {
+            // Remover o cookie do token
+            document.cookie = 'authToken=; Max-Age=-99999999;';
+            // Redireciona para a página de login
+            window.location.href = '/login';
+        }
+
+        // Verifica se o token existe e é válido ao carregar a página
+        window.onload = checkAuthToken;
+    </script>
+</body>
+
+</html>
